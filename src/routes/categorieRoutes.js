@@ -3,18 +3,17 @@ import * as productService from '../services/productService.js';
 import axios from 'axios';
 
 const router = express.Router();
+
 const pushOne = async url => {
     try {
-        const urlToScrape = url; // ou une URL fixe
-        const response = await axios.get(`http://taapit-scraping-api-etyf.onrender.com/api/ebay/product?path=${encodeURIComponent(urlToScrape)}`, {
+        let response = await axios.get(`http://taapit-scraping-api-etyf.onrender.com/api/ebay/product?path=${encodeURIComponent(url)}`, {
             maxBodyLength: Infinity,
             headers: {}
         });
 
-        const productData = response.data;
+        let productData = response.data;
 
-        // Mapper le JSON reçu vers les champs Prisma
-        const productToCreate = {
+        let productToCreate = {
             itemId: productData.itemId,
             title: productData.title,
             oemReference: productData.oemReference,
@@ -28,30 +27,37 @@ const pushOne = async url => {
             status: productData.status || 'ACTIVE'
         };
 
-        const product = await productService.createProduct(productToCreate);
-
-        // utilisation
+        let product = await productService.createProduct(productToCreate);
         console.log('push done pour: ' + product.itemId);
     } catch (e) {
-        console.error(e);
-        res.status(500).json({error: e.message});
+        console.error('Erreur pushOne:', e.message);
     }
 };
 
-// Créer un produit
 router.post('/', async (req, res) => {
     try {
-        const urlToScrape = req.body.categorie || req.query.categorie; // ou une URL fixe
-        const response = await axios.get(`http://taapit-scraping-api-etyf.onrender.com/api/ebay/categorie?path=${encodeURIComponent(urlToScrape)}`, {
+        let urlToScrape = req.body.categorie || req.query.categorie;
+
+        if (!urlToScrape) return res.status(400).json({error: 'categorie manquante'});
+
+        let response = await axios.get(`http://taapit-scraping-api-etyf.onrender.com/api/ebay/categorie?path=${encodeURIComponent(urlToScrape)}`, {
             maxBodyLength: Infinity,
             headers: {}
         });
 
-        const product_links = await response;
+        let data = response.data;
 
-        res.json(product_links);
+        let wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+        for (let product_link of data.product_links) {
+            console.log(product_link);
+            await pushOne(product_link.link);
+            await wait(10000);
+        }
+
+        res.json(data.product_links);
     } catch (e) {
-        console.error(e);
+        console.error('Erreur route:', e.message);
         res.status(500).json({error: e.message});
     }
 });
