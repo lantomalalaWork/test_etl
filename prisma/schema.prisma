@@ -14,19 +14,25 @@ datasource db {
 }
 
 model Product {
-  id                Int     @id @default(autoincrement())
-  itemId            String     @unique
-  title             String?
-  oemReference      String?
-  price             Float?
-  currency          String?    @db.VarChar(8)
-  url               String?
-  seller            String?
-  listingStartDate  DateTime?  @db.Timestamptz
-  status            String     @default("ACTIVE") @db.VarChar(16)
-  endDate           DateTime?  @db.Timestamptz
-  closedReason      String?
-  createdAt         DateTime   @default(now()) @db.Timestamptz
-  updatedAt         DateTime   @default(now()) @db.Timestamptz
+  id               BigInt     @id @default(autoincrement())
+  itemId           String     @unique
+  title            String?
+  oemReference     String?
+  priceNet         Float?
+  priceBrut        Float?
+  currency         String?    @db.VarChar(8)
+  url              String?
+  images           String[]
+  seller           Json?
+  listingStartDate DateTime?  @db.Timestamptz
+  status           String     @default("ACTIVE") @db.VarChar(16)
+  endDate          DateTime?  @db.Timestamptz
+  closedReason     String?
+  createdAt        DateTime   @default(now()) @db.Timestamptz
+  updatedAt        DateTime   @default(now()) @db.Timestamptz
 }
+
+
+
+
 

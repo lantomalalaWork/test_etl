@@ -24,3 +24,45 @@ export const updateProduct = async (id, data) => {
 export const deleteProduct = async (id) => {
     return await prisma.product.delete({ where: { id: BigInt(id) } });
 };
+
+
+export async function getProductByItemId(itemId) {
+  return prisma.product.findUnique({ where: { itemId } });
+}
+
+export async function getProductByTitle(title) {
+  return prisma.product.findFirst({
+    where: { title: { contains: title, mode: 'insensitive' } }
+  });
+}
+
+export async function deleteProductById(id) {
+    return prisma.product.delete({ where: { id } });
+  }
+  
+  export async function deleteProductByItemId(itemId) {
+    return prisma.product.delete({ where: { itemId } });
+  }
+  
+// Si tu veux aussi créer un produit
+
+
+// Optionnel : upsert pour créer ou mettre à jour selon itemId
+export async function upsertProduct(data) {
+  return prisma.product.upsert({
+    where: { itemId: data.itemId },
+    update: {
+      title: data.title,
+      oemReference: data.oemReference,
+      priceNet: data.priceNet,
+      priceBrut: data.priceBrut,
+      currency: data.currency,
+      url: data.url,
+      images: data.images,
+      seller: data.seller,
+      listingStartDate: data.listingStartDate,
+      status: data.status || "ACTIVE"
+    },
+    create: data
+  });
+}
